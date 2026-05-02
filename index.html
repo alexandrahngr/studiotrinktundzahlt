@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Getränkeliste</title>
+<style>
+    body {
+        background: #000;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        font-size: 2.5em;
+        margin-bottom: 5px;
+    }
+
+    .subtext {
+        font-size: 0.9em;
+        color: #ccc;
+        margin-bottom: 25px;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 30px;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .person {
+        background: #111;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 0 10px #333;
+    }
+
+    .icon {
+        font-size: 50px;
+        margin-bottom: 10px;
+    }
+
+    .name {
+        font-size: 1.2em;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .count {
+        font-size: 1.5em;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 1em;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #444;
+        color: #fff;
+        transition: 0.2s;
+        margin: 3px;
+    }
+
+    button:hover {
+        background: #666;
+    }
+
+    .minus {
+        background: #772222;
+    }
+
+    .minus:hover {
+        background: #aa3333;
+    }
+</style>
+</head>
+<body>
+
+<h1 id="title"></h1>
+<div class="subtext">Ein Getränk aus der Kiste macht 1,50 € – Abrechnung erfolgt monatlich.</div>
+
+<div class="grid" id="personen"></div>
+
+<script>
+// Personen + Icons
+const personenListe = [
+    { name: "Person 1", icon: "🦊" },
+    { name: "Person 2", icon: "🐼" },
+    { name: "Person 3", icon: "🐵" },
+    { name: "Person 4", icon: "🦁" },
+    { name: "Person 5", icon: "🐸" },
+    { name: "Person 6", icon: "🐧" },
+    { name: "Person 7", icon: "🐢" },
+    { name: "Person 8", icon: "🐯" },
+    { name: "Person 9", icon: "🐶" },
+    { name: "Person 10", icon: "🐱" }
+];
+
+// Monatstitel setzen
+const jetzt = new Date();
+const monatNamen = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+document.getElementById("title").textContent = "Getränkeliste – " + monatNamen[jetzt.getMonth()] + " " + jetzt.getFullYear();
+
+// Monat prüfen und ggf. zurücksetzen
+const aktuellerMonat = jetzt.getMonth();
+const gespeicherterMonat = localStorage.getItem("monat");
+
+if (gespeicherterMonat == null || gespeicherterMonat != aktuellerMonat) {
+    localStorage.clear();
+    localStorage.setItem("monat", aktuellerMonat);
+}
+
+// UI erzeugen
+const container = document.getElementById("personen");
+
+personenListe.forEach(person => {
+    const countKey = "count_" + person.name;
+    const count = Number(localStorage.getItem(countKey)) || 0;
+
+    const div = document.createElement("div");
+    div.className = "person";
+
+    div.innerHTML = `
+        <div class="icon">${person.icon}</div>
+        <span class="name">${person.name}</span>
+        <span class="count" id="${countKey}">${count}</span>
+    `;
+
+    // Plus-Button
+    const plusBtn = document.createElement("button");
+    plusBtn.textContent = "+1";
+    plusBtn.onclick = () => {
+        const neuerWert = (Number(localStorage.getItem(countKey)) || 0) + 1;
+        localStorage.setItem(countKey, neuerWert);
+        document.getElementById(countKey).textContent = neuerWert;
+    };
+
+    // Minus-Button
+    const minusBtn = document.createElement("button");
+    minusBtn.textContent = "-1";
+    minusBtn.className = "minus";
+    minusBtn.onclick = () => {
+        let aktuellerWert = Number(localStorage.getItem(countKey)) || 0;
+        if (aktuellerWert > 0) aktuellerWert--;
+        localStorage.setItem(countKey, aktuellerWert);
+        document.getElementById(countKey).textContent = aktuellerWert;
+    };
+
+    div.appendChild(plusBtn);
+    div.appendChild(minusBtn);
+    container.appendChild(div);
+});
+</script>
+
+</body>
+</html>
