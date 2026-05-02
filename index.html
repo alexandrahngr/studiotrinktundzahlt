@@ -26,8 +26,8 @@
 
     .grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 30px;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
         max-width: 900px;
         margin: 0 auto;
     }
@@ -52,12 +52,19 @@
 
     .count {
         font-size: 1.5em;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .sum {
+        font-size: 1em;
+        color: #aaa;
         margin-bottom: 10px;
         display: block;
     }
 
     button {
-        padding: 8px 16px;
+        padding: 10px 18px;
         font-size: 1em;
         border: none;
         border-radius: 8px;
@@ -79,6 +86,15 @@
     .minus:hover {
         background: #aa3333;
     }
+
+    #exportBtn {
+        margin-top: 30px;
+        background: #1e6f1e;
+    }
+
+    #exportBtn:hover {
+        background: #2a9a2a;
+    }
 </style>
 </head>
 <body>
@@ -88,7 +104,11 @@
 
 <div class="grid" id="personen"></div>
 
+<button id="exportBtn">Excel / CSV Export</button>
+
 <script>
+const PREIS = 1.50;
+
 // Personen + Icons
 const personenListe = [
     { name: "Person 1", icon: "🦊" },
@@ -127,10 +147,13 @@ personenListe.forEach(person => {
     const div = document.createElement("div");
     div.className = "person";
 
+    const summe = (count * PREIS).toFixed(2);
+
     div.innerHTML = `
         <div class="icon">${person.icon}</div>
         <span class="name">${person.name}</span>
         <span class="count" id="${countKey}">${count}</span>
+        <span class="sum" id="sum_${countKey}">Summe: ${summe} €</span>
     `;
 
     // Plus-Button
@@ -140,6 +163,7 @@ personenListe.forEach(person => {
         const neuerWert = (Number(localStorage.getItem(countKey)) || 0) + 1;
         localStorage.setItem(countKey, neuerWert);
         document.getElementById(countKey).textContent = neuerWert;
+        document.getElementById("sum_" + countKey).textContent = "Summe: " + (neuerWert * PREIS).toFixed(2) + " €";
     };
 
     // Minus-Button
@@ -151,12 +175,33 @@ personenListe.forEach(person => {
         if (aktuellerWert > 0) aktuellerWert--;
         localStorage.setItem(countKey, aktuellerWert);
         document.getElementById(countKey).textContent = aktuellerWert;
+        document.getElementById("sum_" + countKey).textContent = "Summe: " + (aktuellerWert * PREIS).toFixed(2) + " €";
     };
 
     div.appendChild(plusBtn);
     div.appendChild(minusBtn);
     container.appendChild(div);
 });
+
+// CSV Export
+document.getElementById("exportBtn").onclick = () => {
+    let csv = "Person;Getränke;Summe (€);" + monatNamen[jetzt.getMonth()] + " " + jetzt.getFullYear() + "\n";
+
+    personenListe.forEach(person => {
+        const countKey = "count_" + person.name;
+        const count = Number(localStorage.getItem(countKey)) || 0;
+        const summe = (count * PREIS).toFixed(2);
+        csv += `${person.name};${count};${summe};\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "getraenkeliste_" + jetzt.getFullYear() + "_" + (jetzt.getMonth()+1) + ".csv";
+    link.click();
+};
 </script>
 
 </body>
